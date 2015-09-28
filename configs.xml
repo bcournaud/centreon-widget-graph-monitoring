@@ -1,14 +1,14 @@
 <configs>
         <title>Graph Monitoring V2</title>
-        <author>Merethis</author>
-        <email>contact@merethis.com</email>
-        <website>http://www.merethis.com</website>
-        <description>Widget for displaying RRD graphs</description>
-        <version>1.1.0</version>
+        <author>Centreon</author>
+        <email>contact@centreon.com</email>
+        <website>http://www.centreon.com</website>
+        <description>Widget for displaying RRD graphs with C3js</description>
+        <version>1.0.0</version>
         <keywords>centreon, widget, rrd, monitoring</keywords>
         <screenshot></screenshot>
-        <thumbnail>./widgets/graph-v2/resources/centreon-logo.png</thumbnail>
-        <url>./widgets/graph-v2/index.php</url>
+        <thumbnail>./widgets/centreon-widget-graph-monitoring/resources/centreon-logo.png</thumbnail>
+        <url>./widgets/centreon-widget-graph-monitoring/index.php</url>
         <autoRefresh>10</autoRefresh>
         <preferences>        	
         	<preference label="Service" name="service" defaultValue="" type="service" header="Resource"/>
