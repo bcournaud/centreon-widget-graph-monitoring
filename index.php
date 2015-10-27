@@ -151,12 +151,13 @@ var autoRefresh = <?php echo $autoRefresh;?>;
 var timeout;
 
 jQuery(function() {
-    console.log("jQuery call");
     	var image = document.getElementById("chart4");
     	if (image) {
-     	   image.onload = function() {
-          	var h = this.height;
-		parent.iResize(window.name, h);
+	  console.log("image");
+	       	   image.onload = function() {
+		     console.log("Entered! ");
+	            	var h = this.height;
+		     	parent.resize(window.name, 600);
                jQuery(window).resize(function() {
 		      	   	     reload();
 		 });
@@ -168,7 +169,11 @@ jQuery(function() {
 function reload() {
   var startTime = Math.round(new Date().getTime() /1000 - <?php echo $preferences['graph_period']; ?>);
   console.log('Reload !'); 
- 
+  
+  var graphPart = document.getElementById("chart4");
+  if (graphPart) {
+    parent.iResize(window.name, 350);
+  };
   $.ajax({
     type: "GET",
 	dataType: "json",
@@ -181,30 +186,27 @@ function reload() {
 	  },
 	success : function(data) {
 
+	var result = new Object();
+	result.data = new Array();
+
+	for (var x = 0; x < data[0].times.length; x++) {
+	  tmp = new Object();
+	  tmp.name = 'name';
+	  tmp.load = data[0].data[x];
+	  result.data[x] = tmp;
+	}
+
+	console.log(result);
 	var chart = c3.generate({
 	  bindto: '#chart4',
+	      size: {
+	    width: 600,
+		height: 300
+	    },
 	 data: {
-		x: 'x',
-	        columns: [
-			['x', '2015-04-01', '2015-05-01', '2015-06-01', '2015-07-01', '2015-08-01', '2015-09-01'],
-			['Availability', 99.56, 99.56, 100, 100, 50, 86.32],
-			['Alerts', 10, 20, 0, 0, 50, 3]
-      ],
-      axes: {
-        Alerts: 'y2'
-      },
-      types: {
-        Alerts: 'bar' // ADD
-      }
-    },
-    axis: {
-	 x:{
-            type: 'timeseries',
-            tick: {
-                format: '%Y-%m'
-            }
-	 }
-	    }
+	    json: data[0].time,
+		json: data[0].data[0]
+		},
 	  });
 
 	// function below reloads current page

@@ -45,11 +45,11 @@ class GraphService extends CentreonGraph
             $i++;
             $info = array(
                 "data" => array(),
-                "legend" => $metric["metric_legend"],
-                "graph_type" => "line",
-                "unit" => $metric["unit"],
-                "color" => $metric["ds_color_line"],
-                "negative" => false
+#                "legend" => $metric["metric_legend"],
+#                "graph_type" => "line",
+#                "unit" => $metric["unit"],
+#                "color" => $metric["ds_color_line"],
+#                "negative" => false
             );
             if (isset($metric['ds_color_area'])) {
                 $info['graph_type'] = "area";
