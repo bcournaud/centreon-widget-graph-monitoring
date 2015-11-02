@@ -167,8 +167,12 @@ jQuery(function() {
  });
 
 function reload() {
-  var startTime = Math.round(new Date().getTime() /1000 - <?php echo $preferences['graph_period']; ?>);
-  console.log('Reload !'); 
+  var graphPeriod = <?php echo $preferences['graph_period']; ?>;
+  var startTime = Math.round(new Date().getTime() /1000 - graphPeriod);
+
+  var nbPoints = graphPeriod / 60 / 5;
+  console.log(nbPoints);
+  nbPoints = Math.min(nbPoints, 200);
   
   var graphPart = document.getElementById("chart4");
   if (graphPart) {
@@ -180,33 +184,63 @@ function reload() {
 	url: "src/get_metrics.php" ,
 	data: { start: startTime,
 	  end: Math.round(new Date().getTime() / 1000),
-	  rows: 200,
+	  rows: nbPoints,
 	  ids: '<?php echo str_replace('-', '_', $preferences['service']); ?>',
 	  session_id: '<?php echo session_id();?>'
 	  },
 	success : function(data) {
+	
+	var result = new Array();
 
-	var result = new Object();
-	result.data = new Array();
+	console.log(data);
 
-	for (var x = 0; x < data[0].times.length; x++) {
-	  tmp = new Object();
-	  tmp.name = 'name';
-	  tmp.load = data[0].data[x];
-	  result.data[x] = tmp;
+	var timeFormatter = '%H:%M';
+	var times = data[0].times;
+	var rangeTime = times[times.length - 1] - times[0];
+
+	if (rangeTime > 1000 * 24) {
+	  timeFormatter = '%d-%m';
 	}
+
+	for (var x = 0; x < data[0].data.length; x++) {
+	  var tmp = new Array();
+	  tmp[0] = 'label ' + x;
+	  for (var y = 0; y < data[0].data[x].data.length; y++) {
+	    tmp[y + 1] = data[0].data[x].data[y];
+	  }
+	  result[x + 1] = tmp;
+	}
+
+	var timeseries = new Array();
+	timeseries[0] = 'time';
+	for (var x = 0; x < data[0].times.length; x++) {
+	  timeseries[x + 1] = data[0].times[x] * 1000;
+	}
+	result[0] = timeseries;
 
 	console.log(result);
 	var chart = c3.generate({
 	  bindto: '#chart4',
-	      size: {
-	    width: 600,
+/*	      size: {
+	    width: 900,
 		height: 300
-	    },
+	    },*/
 	 data: {
-	    json: data[0].time,
-		json: data[0].data[0]
-		},
+	    x: 'time',
+	    columns : result,
+            types: {
+		'label 0' : data[0].data[0].type,
+		  'label 1' : 'area-spline'
+		  }
+	    },
+	      axis: {
+	    x: {
+	      type : 'timeseries',
+		  tick: {
+		format: d3.time.format(timeFormatter)
+		    }
+	      }
+	    }
 	  });
 
 	// function below reloads current page
