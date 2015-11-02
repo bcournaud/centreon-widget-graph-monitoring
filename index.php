@@ -128,7 +128,6 @@ $widgetId = $_REQUEST['widgetId'];
         <script type="text/javascript" src="../../include/common/javascript/jquery/jquery.js"></script>
         <script type="text/javascript" src="../../include/common/javascript/jquery/jquery-ui.js"></script>
         <script type="text/javascript" src="../../include/common/javascript/widgetUtils.js"></script>
-	<script type="text/javascript" src="resources/maths.min.js"></script>
 
 	</head>
      <body>
@@ -158,7 +157,7 @@ jQuery(function() {
 	       	   image.onload = function() {
 		     console.log("Entered! ");
 	            	var h = this.height;
-		     	parent.resize(window.name, 600);
+		     	parent.iResize(window.name, h);
                jQuery(window).resize(function() {
 		      	   	     reload();
 		 });
@@ -191,8 +190,6 @@ function reload() {
 	  },
 	success : function(data) {
 	
-	var result = new Array();
-
 	console.log(data);
 
 	var timeFormatter = '%H:%M';
@@ -203,36 +200,25 @@ function reload() {
 	  timeFormatter = '%d/%m';
 	}
 
-	// Use math.min.js to convert values to an adapted unit
-	var maxValue = 0;
-	for (var x = 0; x < data[0].data.length; x++) {
-	  var tmp = new Array();
-	  tmp[0] = data[0].data[x].label;
-	  for (var y = 0; y < data[0].data[x].data.length; y++) {
-	    tmp[y + 1] = data[0].data[x].data[y];
-	    maxValue = Math.max(data[0].data[x].data[y], maxValue);
-	  }
-	  result[x + 1] = tmp;
-	}
-
+	// Time serie
 	var timeseries = new Array();
 	timeseries[0] = 'time';
 	for (var x = 0; x < data[0].times.length; x++) {
 	  timeseries[x + 1] = data[0].times[x] * 1000;
 	}
-	result[0] = timeseries;
 
-	console.log(result);
+	
+	var hostName = '<?php echo $host_name; ?>';
+	var serviceDescription = '<?php echo $service_description; ?>';
+
+	// Generate graph
 	var chart = c3.generate({
 	  bindto: '#chart4',
-	      title: "title",
+	      title: hostName,
 	 data: {
 	    x: 'time',
-	    columns : result,
-            types: {
-		'traffic_in' : 'area-step',
-		  'traffic_out' : 'area-step'
-		  }
+	    columns : [
+		       ],
 		  },
 	      grid: {
 	    x: {
@@ -242,9 +228,6 @@ function reload() {
 	      show: true
 	      }
 	    },
-	      transition: {
-	    duration: 1000
-		},
 	      axis: {
 	    x: {
 	      type : 'timeseries',
@@ -254,15 +237,49 @@ function reload() {
 	      }
 	    }
 	  });
+	// End graph generation
 
-	var hostName = <?php echo $host_name; ?>;
-	var serviceDescritpion = <?php echo $service_description ?>;
+	// Set graph name
 	d3.select("#chart4").append("text")
 	  .attr("x", 100)
 	  .attr("y", 50)
 	  .style("text-anchor", "middle")
-	  .text(<?php echo $host_name ?>);
+	  .text(hostName + " - " + serviceDescription);
 
+
+	// End set graph name
+
+	// TODO: Use math.min.js to convert values to an adapted unit
+	for (var x = 0; x < data[0].data.length; x++) {
+	  var tmp = new Array();
+	  tmp[0] = data[0].data[x].label;
+	  for (var y = 0; y < data[0].data[x].data.length; y++) {
+	    tmp[y + 1] = data[0].data[x].data[y];
+	  }
+
+	var type = data[0].data[x].type;
+	if (type = 'area') {
+	  type = 'line';
+	}
+
+	if (data[0].data[x].label.startsWith("traffic")) {
+	    type = 'area-step';
+	  }
+
+	var colorObj = {};
+	colorObj[tmp[0]] = data[0].data[x].color;
+
+	  // Load data
+	chart.load({
+		     columns: [
+			       tmp,
+			       timeseries
+			       ],
+	      type: type,
+	      colors: colorObj
+	      });
+	  // End load data
+	}
 	// function below reloads current page
 	// location.reload();
       },
