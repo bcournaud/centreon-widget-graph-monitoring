@@ -199,7 +199,7 @@ function reload() {
 	var rangeTime = times[times.length - 1] - times[0];
 
 	if (rangeTime > 1000 * 24) {
-	  timeFormatter = '%d-%m';
+	  timeFormatter = '%d/%m';
 	}
 
 	for (var x = 0; x < data[0].data.length; x++) {
@@ -221,17 +221,21 @@ function reload() {
 	console.log(result);
 	var chart = c3.generate({
 	  bindto: '#chart4',
-/*	      size: {
-	    width: 900,
-		height: 300
-	    },*/
 	 data: {
 	    x: 'time',
 	    columns : result,
             types: {
 		'label 0' : data[0].data[0].type,
-		  'label 1' : 'area-spline'
+		  'label 1' : data[0].data[1].type
 		  }
+	    },
+	      grid: {
+	    x: {
+	      show: true
+		  },
+		y: {
+	      show: true
+	      }
 	    },
 	      axis: {
 	    x: {
