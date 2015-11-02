@@ -207,7 +207,6 @@ function reload() {
 	  timeseries[x + 1] = data[0].times[x] * 1000;
 	}
 
-	
 	var hostName = '<?php echo $host_name; ?>';
 	var serviceDescription = '<?php echo $service_description; ?>';
 
@@ -234,20 +233,16 @@ function reload() {
 		  tick: {
 		format: d3.time.format(timeFormatter)
 		    }
-	      }
-	    }
+	      },
+	    y: {
+	      label: {
+		text: serviceDescription,
+		    position: 'outer-middle'
+		}
+	      },
+		}
 	  });
 	// End graph generation
-
-	// Set graph name
-	d3.select("#chart4").append("text")
-	  .attr("x", 100)
-	  .attr("y", 50)
-	  .style("text-anchor", "middle")
-	  .text(hostName + " - " + serviceDescription);
-
-
-	// End set graph name
 
 	// TODO: Use math.min.js to convert values to an adapted unit
 	for (var x = 0; x < data[0].data.length; x++) {
