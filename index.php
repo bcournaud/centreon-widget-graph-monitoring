@@ -204,7 +204,7 @@ function reload() {
 
 	for (var x = 0; x < data[0].data.length; x++) {
 	  var tmp = new Array();
-	  tmp[0] = 'label ' + x;
+	  tmp[0] = data[0].data[x].label;
 	  for (var y = 0; y < data[0].data[x].data.length; y++) {
 	    tmp[y + 1] = data[0].data[x].data[y];
 	  }
@@ -225,8 +225,8 @@ function reload() {
 	    x: 'time',
 	    columns : result,
             types: {
-		'label 0' : data[0].data[0].type,
-		  'label 1' : data[0].data[1].type
+		'traffic_in' : data[0].data[0].type,
+		  'traffic_out' : data[0].data[1].type
 		  }
 	    },
 	      grid: {
@@ -237,6 +237,9 @@ function reload() {
 	      show: true
 	      }
 	    },
+	      transition: {
+	    duration: 1000
+		},
 	      axis: {
 	    x: {
 	      type : 'timeseries',
