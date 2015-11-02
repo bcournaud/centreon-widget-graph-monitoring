@@ -87,7 +87,7 @@ $widgetId = $_REQUEST['widgetId'];
             $row = $res->fetchRow();
             $host_name = $row["host_name"];
             $service_description = $row["service_description"]; 
-        } 
+        }
     }
     
     /*
@@ -128,6 +128,7 @@ $widgetId = $_REQUEST['widgetId'];
         <script type="text/javascript" src="../../include/common/javascript/jquery/jquery.js"></script>
         <script type="text/javascript" src="../../include/common/javascript/jquery/jquery-ui.js"></script>
         <script type="text/javascript" src="../../include/common/javascript/widgetUtils.js"></script>
+	<script type="text/javascript" src="resources/maths.min.js"></script>
 
 	</head>
      <body>
@@ -202,11 +203,14 @@ function reload() {
 	  timeFormatter = '%d/%m';
 	}
 
+	// Use math.min.js to convert values to an adapted unit
+	var maxValue = 0;
 	for (var x = 0; x < data[0].data.length; x++) {
 	  var tmp = new Array();
 	  tmp[0] = data[0].data[x].label;
 	  for (var y = 0; y < data[0].data[x].data.length; y++) {
 	    tmp[y + 1] = data[0].data[x].data[y];
+	    maxValue = Math.max(data[0].data[x].data[y], maxValue);
 	  }
 	  result[x + 1] = tmp;
 	}
@@ -221,14 +225,15 @@ function reload() {
 	console.log(result);
 	var chart = c3.generate({
 	  bindto: '#chart4',
+	      title: "title",
 	 data: {
 	    x: 'time',
 	    columns : result,
             types: {
-		'traffic_in' : data[0].data[0].type,
-		  'traffic_out' : data[0].data[1].type
+		'traffic_in' : 'area-step',
+		  'traffic_out' : 'area-step'
 		  }
-	    },
+		  },
 	      grid: {
 	    x: {
 	      show: true
@@ -249,6 +254,14 @@ function reload() {
 	      }
 	    }
 	  });
+
+	var hostName = <?php echo $host_name; ?>;
+	var serviceDescritpion = <?php echo $service_description ?>;
+	d3.select("#chart4").append("text")
+	  .attr("x", 100)
+	  .attr("y", 50)
+	  .style("text-anchor", "middle")
+	  .text(<?php echo $host_name ?>);
 
 	// function below reloads current page
 	// location.reload();
