@@ -74,10 +74,10 @@ try {
      */
     if (isset($preferences['service']) && $preferences['service']) {
     	$tab = split("-", $preferences['service']);
-    	
+
     	$host_name = "";
     	$service_description = "";
-    	
+
     	$res = $db2->query("SELECT host_name, service_description
     		FROM index_data
     		WHERE host_id = ".$db->escape($tab[0])."
@@ -121,6 +121,7 @@ div#actionBar { position:absolute; top:0; left:0; width:100%; height:25px; backg
 	<!-- Load d3.js and c3.js -->
 	<script src="resources/d3.v3.min.js" charset="utf-8"></script>
 	<script src="resources/c3.min.js"></script>    
+	<script src="resources/math.min.js"></script>
 
 	<link href="../../Themes/Centreon-2/style.css" rel="stylesheet" type="text/css"/>
 	<link href="../../Themes/Centreon-2/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
@@ -135,6 +136,7 @@ div#actionBar { position:absolute; top:0; left:0; width:100%; height:25px; backg
 	<?php 
 	if ($acl == 1) {
 		if (isset($preferences['service']) && $preferences['service']) {
+			print "<h3 style='text-align:center'>" . $host_name . " - " . $service_description . "</h3>";
 			print "<div id='chart4'></div>";
 		} else {
 			print "<center><div class='update' style='text-align:center;width:350px;'>"._("Please select a resource first")."</div></center>";
@@ -153,9 +155,7 @@ var timeout;
 jQuery(function() {
 	var image = document.getElementById("chart4");
 	if (image) {
-		console.log("image");
 		image.onload = function() {
-			console.log("Entered! ");
 			var h = this.height;
 			parent.iResize(window.name, h);
 			jQuery(window).resize(function() {
@@ -170,10 +170,11 @@ function reload() {
 	var graphPeriod = <?php echo $preferences['graph_period']; ?>;
 	var startTime = Math.round(new Date().getTime() /1000 - graphPeriod);
 
+// Display a point every 5 minutes, with a maximum of 200 points on the graph
 	var nbPoints = graphPeriod / 60 / 5;
 	console.log(nbPoints);
 	nbPoints = Math.min(nbPoints, 200);
-	
+
 	var graphPart = document.getElementById("chart4");
 	if (graphPart) {
 		parent.iResize(window.name, 350);
@@ -188,12 +189,14 @@ function reload() {
 			ids: '<?php echo str_replace('-', '_', $preferences['service']); ?>',
 			session_id: '<?php echo session_id();?>'
 		},
-		success : function(data) {
-			
-			console.log(data);
+		success : function(dataObj) {
+
+			console.log(dataObj);
+
+			var data = dataObj[0];
 
 			var timeFormatter = '%H:%M';
-			var times = data[0].times;
+			var times = data.times;
 			var rangeTime = times[times.length - 1] - times[0];
 
 			if (rangeTime > 1000 * 24) {
@@ -203,12 +206,36 @@ function reload() {
 	// Time serie
 	var timeseries = new Array();
 	timeseries[0] = 'time';
-	for (var x = 0; x < data[0].times.length; x++) {
-		timeseries[x + 1] = data[0].times[x] * 1000;
+	for (var x = 0; x < data.times.length; x++) {
+		timeseries[x + 1] = data.times[x] * 1000;
 	}
 
 	var hostName = '<?php echo $host_name; ?>';
 	var serviceDescription = '<?php echo $service_description; ?>';
+
+	// Compute graph Y unit
+
+	var maxValue = 0;
+	for (var x = 0; x < data.data.length; x++) {
+		for (var y = 0; y < data.data[x].data.length; y++) {
+			maxValue = Math.max(maxValue, Math.abs(data.data[x].data[y]));
+		}
+	}
+
+	var coefficient = 1;
+
+	while (maxValue > 1000) {
+		maxValue = maxValue / 100;
+		coefficient++;
+	}
+	coefficient = Math.min(coefficient, 4);
+
+	// Correspondance table
+	var uc = new Array();
+	uc[1] = "b";
+	uc[2] = "KB";
+	uc[3] = "MB";
+	uc[4] = "GB";
 
 	// Generate graph
 	var chart = c3.generate({
@@ -238,31 +265,35 @@ function reload() {
 				label: {
 					text: serviceDescription,
 					position: 'outer-middle'
-				}
+				},
+				tick: {
+	  				format: d3.format("s")
+	  			}
 			},
 		}
 	});
+
 	// End graph generation
 
 	// TODO: Use math.min.js to convert values to an adapted unit
-	for (var x = 0; x < data[0].data.length; x++) {
+	for (var x = 0; x < data.data.length; x++) {
 		var tmp = new Array();
-		tmp[0] = data[0].data[x].label;
-		for (var y = 0; y < data[0].data[x].data.length; y++) {
-			tmp[y + 1] = data[0].data[x].data[y];
+		tmp[0] = data.data[x].label;
+		for (var y = 0; y < data.data[x].data.length; y++) {
+			tmp[y + 1] = data.data[x].data[y] / coefficient;
 		}
 
-		var type = data[0].data[x].type;
+		var type = data.data[x].type;
 		if (type = 'area') {
 			type = 'line';
 		}
 
-		if (data[0].data[x].label.startsWith("traffic")) {
+		if (data.data[x].label.startsWith("traffic")) {
 			type = 'area-step';
 		}
 
 		var colorObj = {};
-		colorObj[tmp[0]] = data[0].data[x].color;
+		colorObj[tmp[0]] = data.data[x].color;
 
 	  // Load data
 	  chart.load({
@@ -271,7 +302,7 @@ function reload() {
 	  	timeseries
 	  	],
 	  	type: type,
-	  	colors: colorObj
+	  	colors: colorObj,
 	  });
 	  // End load data
 	}
