@@ -191,10 +191,7 @@ function reload() {
 		},
 		success : function(dataObj) {
 
-			console.log(dataObj);
-
 			var data = dataObj[0];
-
 			var timeFormatter = '%H:%M';
 			var times = data.times;
 			var rangeTime = times[times.length - 1] - times[0];
@@ -229,13 +226,6 @@ function reload() {
 		coefficient++;
 	}
 	coefficient = Math.min(coefficient, 4);
-
-	// Correspondance table
-	var uc = new Array();
-	uc[1] = "b";
-	uc[2] = "KB";
-	uc[3] = "MB";
-	uc[4] = "GB";
 
 	// Generate graph
 	var chart = c3.generate({
