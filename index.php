@@ -210,23 +210,6 @@ function reload() {
 	var hostName = '<?php echo $host_name; ?>';
 	var serviceDescription = '<?php echo $service_description; ?>';
 
-	// Compute graph Y unit
-
-	var maxValue = 0;
-	for (var x = 0; x < data.data.length; x++) {
-		for (var y = 0; y < data.data[x].data.length; y++) {
-			maxValue = Math.max(maxValue, Math.abs(data.data[x].data[y]));
-		}
-	}
-
-	var coefficient = 1;
-
-	while (maxValue > 1000) {
-		maxValue = maxValue / 100;
-		coefficient++;
-	}
-	coefficient = Math.min(coefficient, 4);
-
 	// Generate graph
 	var chart = c3.generate({
 		bindto: '#chart4',
@@ -265,12 +248,11 @@ function reload() {
 
 	// End graph generation
 
-	// TODO: Use math.min.js to convert values to an adapted unit
 	for (var x = 0; x < data.data.length; x++) {
 		var tmp = new Array();
 		tmp[0] = data.data[x].label;
 		for (var y = 0; y < data.data[x].data.length; y++) {
-			tmp[y + 1] = data.data[x].data[y] / coefficient;
+			tmp[y + 1] = data.data[x].data[y];
 		}
 
 		var type = data.data[x].type;
