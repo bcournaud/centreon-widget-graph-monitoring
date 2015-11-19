@@ -42,6 +42,7 @@ require_once $centreon_path . 'www/class/centreonDB.class.php';
 require_once $centreon_path . 'www/class/centreonWidget.class.php';
 require_once $centreon_path . 'www/class/centreonACL.class.php';
 
+
 session_start();
 
 if (!isset($_SESSION['centreon']) || !isset($_REQUEST['widgetId'])) {
@@ -49,6 +50,8 @@ if (!isset($_SESSION['centreon']) || !isset($_REQUEST['widgetId'])) {
 }
 $centreon = $_SESSION['centreon'];
 $widgetId = $_REQUEST['widgetId'];
+$host_name = "";
+$service_description = "";
 
 try {
     global $pearDB;
@@ -76,10 +79,6 @@ try {
      */
     if (isset($preferences['service']) && $preferences['service']) {
         $tab = split("-", $preferences['service']);
-        
-        $host_name = "";
-        $service_description = "";
-        
         $res = $db2->query("SELECT host_name, service_description
                                    FROM index_data
                            WHERE host_id = ".$db->escape($tab[0])."
@@ -97,12 +96,12 @@ try {
      */
     $acl = 1;
     if (isset($tab[0]) && isset($tab[1]) && $centreon->user->admin == 0) {
-        $query = "SELECT host_id 
+	$query = "SELECT host_id 
             FROM centreon_acl 
             WHERE host_id = ".$dbAcl->escape($tab[0])." 
             AND service_id = ".$dbAcl->escape($tab[1])." 
             AND group_id IN (".$grouplistStr.")";
-        $res = $dbAcl->query($query);
+        $res = $dbAcl->query($query);    
         if (!$res->numRows()) {
             $acl = 0;
         }
@@ -114,7 +113,7 @@ try {
 ?>
 <html>
     <style type="text/css">
-         body{ margin:0; padding:100px 0 0 0;}
+         body{ margin:0; padding:0;}
          div#actionBar { position:absolute; top:0; left:0; width:100%; height:25px; background-color: #FFFFFF; }
          @media screen { body>div#actionBar { position: fixed; } }
          * html body { overflow:hidden; text-align:center;}
@@ -144,6 +143,7 @@ try {
 <script type="text/javascript">
 var widgetId = <?php echo $widgetId; ?>;
 var autoRefresh = <?php echo $autoRefresh;?>;
+var user = <?php echo $centreon->user->get_id();?>;
 var timeout;
 
 jQuery(function() {
@@ -151,6 +151,7 @@ jQuery(function() {
 	if (image) {
     	   image.onload = function() {
            	var h = this.height;
+                parent.iResize(window.name, h);
                 jQuery(window).resize(function() {
     	   	     reload();
     	        });
@@ -166,8 +167,8 @@ function reload() {
   
   w = jQuery(window).width();
 
-  link.href='../../main.php?p=4&mode=0&svc_id=<?php echo $host_name.";".$service_description; ?>';
-  image.src = "./src/generateGraph.php?service=<?php echo $preferences['service'];?>&tp=<?php echo $preferences['graph_period'];?>&session_id=<?php echo session_id();?>&time=<?php echo time();?>&width="+w;
+  link.href='../../main.php?p=204&mode=0&svc_id=<?php echo $host_name.";".$service_description; ?>';
+  image.src = "./src/generateGraph.php?service=<?php echo $preferences['service'];?>&tp=<?php echo $preferences['graph_period'];?>&time=<?php echo time();?>&width="+w+"&user="+user;
 
   if (autoRefresh) {
     if (timeout) {

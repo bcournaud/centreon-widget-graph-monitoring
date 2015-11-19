@@ -46,7 +46,7 @@ require_once $centreon_path.'/www/class/centreonDB.class.php';
 
 session_start();
 
-if (!isset($_GET['service']) || !isset($_GET['session_id'])) {
+if (!isset($_GET['service'])) {
     exit;
 }
 
@@ -69,11 +69,10 @@ if ($res->numRows()) {
 /**
  * Create XML Request Objects
  */
-$obj = new CentreonGraph($_GET["session_id"], $index, 0, 1);
 
-if (trim(session_id()) != trim($_GET['session_id'])) {
-    $obj->displayError();
-}
+$iIdUser = $_GET['user'];
+
+$obj = new CentreonGraph($iIdUser, $index, 0, 1);
 
 require_once $centreon_path."www/include/common/common-Func.php";
 
@@ -84,7 +83,7 @@ $graphPeriod = isset($_GET['tp']) ? $_GET['tp'] : (60*60*48);
 $obj->setRRDOption("start", (time() - $graphPeriod));
 $obj->setRRDOption("end", time());
 
-$obj->GMT->getMyGMTFromSession($obj->session_id, $db);
+$obj->GMT->getMyGMTFromSession(session_id(), $db);
 
 /**
  * Template Management
