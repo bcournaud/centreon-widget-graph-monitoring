@@ -4,7 +4,7 @@
         <email>contact@centreon.com</email>
         <website>http://www.centreon.com</website>
         <description>Widget for displaying RRD graphs with C3js</description>
-        <version>1.0.0</version>
+        <version>2.0.0</version>
         <keywords>centreon, widget, rrd, monitoring, c3js</keywords>
         <screenshot></screenshot>
         <thumbnail>./widgets/centreon-widget-graph-monitoring/resources/centreon-logo.png</thumbnail>
